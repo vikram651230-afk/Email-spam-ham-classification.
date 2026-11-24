@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🛡️ Spam Shield — Email Spam / Ham Classification (End-to-End Deployment)
 
 An end-to-end machine learning project that classifies emails/SMS messages as **spam** or **ham** (legitimate), served through a **FastAPI** web application with a modern UI.
@@ -241,3 +242,6 @@ python src/features/vectorizer.py
 python src/models/train.py
 python src/models/evaluate.py
 ```
+=======
+# Email-spam-ham-classification.
+>>>>>>> a5fc6e5e39349798770dc053f503e954e7c7173c
