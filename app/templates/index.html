@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spam Shield · Email Spam / Ham Classifier</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">🛡️</span>
+      <div><strong>Spam Shield</strong><small>Email Spam / Ham Classifier</small></div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-tab="check" role="tab">Check Email</button>
+      <button class="tab" data-tab="batch" role="tab">Batch Scan</button>
+      <button class="tab" data-tab="insights" role="tab">Model Insights</button>
+    </nav>
+    <span id="status" class="status"><i></i><span>connecting…</span></span>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Is this email <span class="grad">spam</span> or <span class="grad2">ham</span>?</h1>
+      <p>Paste any email or message and get an instant verdict from a Naive Bayes model trained on labelled spam &amp; legitimate emails — with the words that drove the decision.</p>
+    </section>
+
+    <!-- ========== CHECK ========== -->
+    <section id="tab-check" class="panel active">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head">
+            <h2>Email content</h2>
+            <span class="count"><span id="charCount">0</span> chars</span>
+          </div>
+          <textarea id="emailInput" placeholder="Paste the email subject and body here…" rows="11"></textarea>
+          <div class="samples">
+            <span>Try a sample:</span>
+            <button class="chip" data-sample="0">🎁 Prize scam</button>
+            <button class="chip" data-sample="1">💬 Casual message</button>
+            <button class="chip" data-sample="2">📞 Premium rate</button>
+            <button class="chip" data-sample="3">📅 Work note</button>
+          </div>
+          <div class="actions">
+            <button id="clearBtn" class="btn ghost">Clear</button>
+            <button id="analyzeBtn" class="btn primary"><span class="spin hidden"></span><span class="lbl">Analyze email</span></button>
+          </div>
+        </div>
+
+        <div class="card result-card" id="resultCard">
+          <div id="placeholder" class="placeholder">
+            <div class="ph-icon">✉️</div>
+            <p>Your verdict will appear here.</p>
+          </div>
+          <div id="result" class="hidden">
+            <div id="verdict" class="verdict">
+              <div class="v-icon" id="vIcon"></div>
+              <div><div class="v-label" id="vLabel"></div><div class="v-sub" id="vSub"></div></div>
+            </div>
+            <div class="meter">
+              <div class="meter-top"><span>Ham</span><span id="pctText"></span><span>Spam</span></div>
+              <div class="bar"><div id="barFill" class="bar-fill"></div><div class="bar-mid"></div></div>
+            </div>
+            <div class="signals">
+              <div><h4>🚩 Spam signals</h4><div id="spamSignals" class="tags"></div></div>
+              <div><h4>✅ Legitimate signals</h4><div id="hamSignals" class="tags"></div></div>
+            </div>
+            <p class="meta"><span id="termsMeta"></span></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card history">
+        <div class="card-head"><h2>Recent checks</h2><button id="clearHistory" class="link">Clear history</button></div>
+        <ul id="historyList"></ul>
+        <p id="historyEmpty" class="muted">No checks yet this session.</p>
+      </div>
+    </section>
+
+    <!-- ========== BATCH ========== -->
+    <section id="tab-batch" class="panel">
+      <div class="card">
+        <div class="card-head"><h2>Scan many emails at once</h2><span class="count">max 200</span></div>
+        <p class="muted">One email per line, or upload a <code>.txt</code> / <code>.csv</code> file (CSV with a <code>text</code>, <code>v2</code> or <code>message</code> column).</p>
+        <textarea id="batchInput" rows="7" placeholder="Line 1: first email…&#10;Line 2: second email…"></textarea>
+        <div class="actions">
+          <label class="btn ghost file-btn">📁 Upload file<input type="file" id="fileInput" accept=".txt,.csv" hidden></label>
+          <button id="batchBtn" class="btn primary"><span class="spin hidden"></span><span class="lbl">Scan emails</span></button>
+        </div>
+      </div>
+      <div id="batchOut" class="hidden">
+        <div class="stats">
+          <div class="stat"><b id="bTotal">0</b><span>Scanned</span></div>
+          <div class="stat bad"><b id="bSpam">0</b><span>Spam</span></div>
+          <div class="stat good"><b id="bHam">0</b><span>Ham</span></div>
+        </div>
+        <div class="card table-card">
+          <table><thead><tr><th>#</th><th>Message</th><th>Verdict</th><th>Spam prob.</th></tr></thead><tbody id="batchRows"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== INSIGHTS ========== -->
+    <section id="tab-insights" class="panel">
+      <div class="stats" id="metricStats"></div>
+      <div class="grid-2">
+        <div class="card">
+          <h2>Confusion matrix <small class="muted">(20% hold-out test set)</small></h2>
+          <div id="cm" class="cm"></div>
+        </div>
+        <div class="card">
+          <h2>Dataset &amp; model</h2>
+          <div id="dataInfo"></div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card"><h2>🚩 Strongest spam words</h2><div id="topSpam" class="tags big"></div></div>
+        <div class="card"><h2>✅ Strongest ham words</h2><div id="topHam" class="tags big"></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>Built with FastAPI · scikit-learn · spaCy &nbsp;|&nbsp; Project 02 — Email Spam/Ham Classification (E2E Deployment)</footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>

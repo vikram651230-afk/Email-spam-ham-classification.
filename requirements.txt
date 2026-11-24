@@ -1,0 +1,14 @@
+pandas
+numpy
+scikit-learn
+nltk
+spacy
+regex
+joblib
+fastapi
+uvicorn
+matplotlib
+seaborn
+requests
+jinja2
+python-multipart
